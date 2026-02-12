@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whole Brain Foundation Modeling</title>
+    <link rel="icon" href="data:,">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Electrolize&family=Michroma&family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self'; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self';">
+    <meta name="referrer" content="no-referrer">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comfortaa', sans-serif;
+            background-color: rgb(0, 0, 0);
+            overflow-x: hidden;
+        }
+        
+        .section {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background-color: rgb(0, 0, 0);
+            overflow: hidden;
+        }
+        
+        .background-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            object-fit: cover;
+        }
+        
+        .background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            object-fit: cover;
+        }
+        
+        .background-image.centered {
+            width: 100%;
+            height: 100%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            object-fit: contain;
+        }
+        
+        .background-image.centered-below {
+            width: 50%;
+            height: 25%;
+            top: 75%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            object-fit: contain;
+        }
+        
+        .title-section {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .title {
+            position: absolute;
+            top: 80px;
+            left: 75px;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            pointer-events: auto;
+        }
+        
+        .title .subtitle {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 400;
+            margin-top: 10px;
+            display: block;
+        }
+        
+        .content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            max-width: 800px;
+        }
+        
+        .content.top {
+            top: 10%;
+            transform: translate(-50%, 0);
+        }
+        
+        .content.top-left {
+            top: 15%;
+            left: 10%;
+            transform: none;
+            text-align: left;
+            max-width: 500px;
+        }
+        
+        /* Navigation Menu */
+        .nav-menu {
+            position: fixed;
+            bottom: 50px;
+            left: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .nav-item:hover .nav-dot {
+            border-color: rgba(255, 255, 255, 0.9);
+            transform: scale(1.2);
+        }
+        
+        .nav-item.active .nav-dot {
+            border-color: white;
+            border-width: 2px;
+            transform: scale(1.5);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+        
+        .nav-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-family: 'Comfortaa', sans-serif;
+            font-size: 12px;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        
+        .nav-item:hover .nav-label {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .nav-item.active .nav-label {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Lab Credit */
+        .lab-credit {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            color: rgba(255, 255, 255, 0.8);
+            font-family: 'Comfortaa', sans-serif;
+            font-size: 21px;
+            font-weight: 300;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .github-link {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.8);
+            font-family: 'Comfortaa', sans-serif;
+            font-size: 21px;
+            font-weight: 300;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+            text-decoration: none;
+        }
+        .github-link:hover {
+            color: rgba(255, 255, 255, 1);
+        }
+        
+        .image-credit {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            font-family: 'Comfortaa', sans-serif;
+            font-size: 12px;
+            text-decoration: none;
+            z-index: 10;
+        }
+        .image-credit:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+                top: 80px;
+                left: 100px;
+            }
+            
+            .title .subtitle {
+                font-size: 1.5rem;
+            }
+            
+            .nav-menu {
+                bottom: 30px;
+                left: 20px;
+            }
+            
+            .lab-credit {
+                font-size: 21px;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .title {
+                font-size: 1.5rem;
+                top: 60px;
+                left: 60px;
+            }
+            
+            .title .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .nav-menu {
+                bottom: 20px;
+                left: 15px;
+            }
+            
+            .lab-credit {
+                font-size: 21px;
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Menu -->
+    <nav class="nav-menu">
+        <div class="nav-item active" onclick="scrollToSection(0)">
+            <div class="nav-dot"></div>
+            <span class="nav-label">Title</span>
+        </div>
+        <div class="nav-item" onclick="scrollToSection(1)">
+            <div class="nav-dot"></div>
+            <span class="nav-label">Architecture</span>
+        </div>
+        <div class="nav-item" onclick="scrollToSection(2)">
+            <div class="nav-dot"></div>
+            <span class="nav-label">Future Steps</span>
+        </div>
+    </nav>
+
+    <!-- First Section - Video Background with Title -->
+    <section class="section" id="section-0">
+        <video class="background-video" autoplay muted loop playsinline preload="auto">
+            <source src="demo.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="title-section">
+            <h1 class="title">
+                Generative Brain Model
+                <span class="subtitle">virtual whole zebrafish brain</span>
+                <span class="subtitle">with neuron spike fidelity</span>
+            </h1>
+        </div>
+        <div class="lab-credit">Thomson Laboratory Caltech</div>
+        <a href="https://github.com/Sam-Fatehmanesh/GBM" class="github-link" target="_blank" rel="noopener noreferrer">github.com/Sam-Fatehmanesh/GBM</a>
+    </section>
+    
+    <!-- Second Section - p2b.png Background -->
+    <section class="section" id="section-1">
+        <img class="background-image centered" src="p2b.png" alt="Background">
+        <img class="background-image centered-below" src="p2c.png" alt="Background">
+        <div class="content top">
+            <h2 style="font-size: 2.5rem; margin-bottom: 30px; font-weight: 600;">Architecture</h2>
+            <div style="font-size: 1.2rem; line-height: 1.6; max-width: 900px;">
+                <p style="margin-bottom: 20px;"><strong>Neural Spike Conversion:</strong> Clean representation eliminating noise and artifacts</p>
+                <p style="margin-bottom: 20px;"><strong>Mamba Architecture:</strong> Separates observation from hidden state dynamics for interpretability</p>
+                <p style="margin-bottom: 20px;"><strong>Two-Phase Training:</strong> Pretrain across many fish, then fine-tune on individual brains</p>
+            </div>
+        </div>
+        <a href="https://zebrafishucl.org/neurotransmitters/category/Neurotransmitters" class="image-credit" target="_blank" rel="noopener noreferrer">Left Image Credit</a>
+    </section>
+    
+    <!-- Third Section - p3.png Background -->
+    <section class="section" id="section-2">
+        <img class="background-image" src="p3.png" alt="Background">
+        <div class="content top-left">
+            <h2 style="font-size: 2.2rem; margin-bottom: 25px; font-weight: 600;">Future Steps</h2>
+            <div style="font-size: 1.1rem; line-height: 1.6;">
+                <p style="margin-bottom: 18px;"><strong>Closed-Loop Enhancement:</strong> Precise prediction and replication of cognitive functions</p>
+                <p style="margin-bottom: 18px;"><strong>Fast Think System:</strong> Predict neural activity faster than the zebrafish generates it, enabling super reaction speeds</p>
+                <p style="margin-bottom: 18px;"><strong>Brain LoRA:</strong> Transfer novel abilities and sensory functions from model to living brain</p>
+            </div>
+        </div>
+    </section>
+    
+    <script>
+        // Debug video loading
+        const video = document.querySelector('.background-video');
+        video.addEventListener('loadstart', () => console.log('Video load started'));
+        video.addEventListener('canplay', () => console.log('Video can play'));
+        video.addEventListener('error', (e) => console.error('Video error:', e));
+        
+        // Debug image loading
+        const images = document.querySelectorAll('.background-image');
+        images.forEach((img, index) => {
+            img.addEventListener('load', () => console.log(`Image ${index + 1} loaded`));
+            img.addEventListener('error', (e) => console.error(`Image ${index + 1} error:`, e));
+        });
+        
+        // Force video play after page load
+        window.addEventListener('load', () => {
+            video.play().catch(e => console.error('Video play failed:', e));
+        });
+
+        // Navigation functionality
+        function scrollToSection(sectionIndex) {
+            const section = document.getElementById(`section-${sectionIndex}`);
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Update active navigation item based on scroll position
+        function updateActiveNav() {
+            const sections = document.querySelectorAll('.section');
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            let currentSection = 0;
+            const scrollPosition = window.scrollY + window.innerHeight / 2;
+            
+            sections.forEach((section, index) => {
+                const sectionTop = section.offsetTop;
+                const sectionBottom = sectionTop + section.offsetHeight;
+                
+                if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                    currentSection = index;
+                }
+            });
+            
+            // Update nav items
+            navItems.forEach((item, index) => {
+                if (index === currentSection) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        // Listen for scroll events
+        window.addEventListener('scroll', updateActiveNav);
+        
+        // Initial check
+        updateActiveNav();
+    </script>
+</body>
+</html> 
