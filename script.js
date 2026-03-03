@@ -54,10 +54,18 @@ function initTrianglesParticles() {
         height: 0,
         particles: [],
         mouseX: -9999,
-        mouseY: -9999
+        mouseY: -9999,
+        edgeAlpha: new Map(),
+        triangleAlpha: new Map()
     };
 
     const randomBetween = (a, b) => Math.random() * (b - a) + a;
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    function smoothFalloff(distance, radius) {
+        const x = Math.max(0, Math.min(1, 1 - distance / radius));
+        return x * x * (3 - 2 * x);
+    }
 
     function particleCountForSize() {
         const area = Math.max(1, state.width * state.height);
@@ -208,6 +216,9 @@ function initTrianglesParticles() {
 
     function drawLinksAndTriangles() {
         const neighborsByIndex = Array.from({ length: state.particles.length }, () => []);
+        const nextEdgeAlpha = new Map();
+        const nextTriangleAlpha = new Map();
+        const liveEdgeAlpha = new Map();
 
         for (let i = 0; i < state.particles.length; i++) {
             const a = state.particles[i];
@@ -222,16 +233,28 @@ function initTrianglesParticles() {
                     continue;
                 }
 
-                const linkAlpha = (1 - dist / LINK_DISTANCE) * 0.65;
+                const targetAlpha = smoothFalloff(dist, LINK_DISTANCE) * 0.42;
+                const edgeKey = i + '|' + j;
+                const prevAlpha = state.edgeAlpha.get(edgeKey) ?? 0;
+                const linkAlpha = lerp(prevAlpha, targetAlpha, 0.22);
+
+                if (linkAlpha < 0.003) {
+                    continue;
+                }
 
                 ctx.beginPath();
-                ctx.strokeStyle = 'rgba(95, 95, 95, ' + linkAlpha.toFixed(3) + ')';
+                ctx.strokeStyle = 'rgba(145, 145, 145, ' + linkAlpha.toFixed(3) + ')';
                 ctx.lineWidth = 1;
                 ctx.moveTo(a.x, a.y);
                 ctx.lineTo(b.x, b.y);
                 ctx.stroke();
 
-                neighborsByIndex[i].push(j);
+                nextEdgeAlpha.set(edgeKey, linkAlpha);
+                liveEdgeAlpha.set(edgeKey, linkAlpha);
+
+                if (linkAlpha > 0.02) {
+                    neighborsByIndex[i].push(j);
+                }
             }
         }
 
@@ -246,25 +269,73 @@ function initTrianglesParticles() {
                     const b = state.particles[j];
                     const c = state.particles[k];
 
-                    const dx = c.x - b.x;
-                    const dy = c.y - b.y;
-                    const bcDist = Math.hypot(dx, dy);
+                    const edgeAB = liveEdgeAlpha.get(i + '|' + j) ?? 0;
+                    const edgeAC = liveEdgeAlpha.get(i + '|' + k) ?? 0;
+                    const edgeBC = liveEdgeAlpha.get(j + '|' + k) ?? 0;
 
-                    if (bcDist >= LINK_DISTANCE) {
+                    if (edgeAB <= 0 || edgeAC <= 0 || edgeBC <= 0) {
                         continue;
                     }
 
-                    const triAlpha = (1 - bcDist / LINK_DISTANCE) * 0.12;
+                    const targetTriAlpha = Math.min(edgeAB, edgeAC, edgeBC) * 0.45;
+                    const triangleKey = i + '|' + j + '|' + k;
+                    const prevTriAlpha = state.triangleAlpha.get(triangleKey) ?? 0;
+                    const triAlpha = lerp(prevTriAlpha, targetTriAlpha, 0.16);
+
+                    if (triAlpha < 0.0025) {
+                        continue;
+                    }
+
                     ctx.beginPath();
-                    ctx.fillStyle = 'rgba(130, 130, 130, ' + triAlpha.toFixed(3) + ')';
+                    ctx.fillStyle = 'rgba(195, 195, 195, ' + triAlpha.toFixed(3) + ')';
                     ctx.moveTo(a.x, a.y);
                     ctx.lineTo(b.x, b.y);
                     ctx.lineTo(c.x, c.y);
                     ctx.closePath();
                     ctx.fill();
+
+                    nextTriangleAlpha.set(triangleKey, triAlpha);
                 }
             }
         }
+
+        // Fade out old triangles smoothly when topology changes.
+        for (const [key, prev] of state.triangleAlpha.entries()) {
+            if (nextTriangleAlpha.has(key)) {
+                continue;
+            }
+
+            const faded = prev * 0.84;
+
+            if (faded < 0.0025) {
+                continue;
+            }
+
+            const parts = key.split('|');
+            const i = Number(parts[0]);
+            const j = Number(parts[1]);
+            const k = Number(parts[2]);
+            const a = state.particles[i];
+            const b = state.particles[j];
+            const c = state.particles[k];
+
+            if (!a || !b || !c) {
+                continue;
+            }
+
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(195, 195, 195, ' + faded.toFixed(3) + ')';
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.lineTo(c.x, c.y);
+            ctx.closePath();
+            ctx.fill();
+
+            nextTriangleAlpha.set(key, faded);
+        }
+
+        state.edgeAlpha = nextEdgeAlpha;
+        state.triangleAlpha = nextTriangleAlpha;
     }
 
     function animate() {
