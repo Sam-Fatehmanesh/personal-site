@@ -28,7 +28,7 @@ function initTrianglesParticles() {
 
     container.replaceChildren(canvas);
 
-    const LINK_DISTANCE = 180;
+    const LINK_DISTANCE = 205;
     const REPULSE_DISTANCE = 280;
     const BASE_SPEED = 0.6;
     const TYPE_COUNT = 3;
@@ -45,9 +45,7 @@ function initTrianglesParticles() {
         [0.18, 0.08, -0.24],
         [-0.24, 0.18, 0.08]
     ];
-    const MIN_PARTICLES = 40;
-    const MAX_PARTICLES = 130;
-    const DENSITY_AREA = 12500;
+    const TARGET_PARTICLES = 80;
 
     const state = {
         width: 0,
@@ -68,11 +66,7 @@ function initTrianglesParticles() {
     }
 
     function particleCountForSize() {
-        const area = Math.max(1, state.width * state.height);
-        return Math.max(
-            MIN_PARTICLES,
-            Math.min(MAX_PARTICLES, Math.floor(area / DENSITY_AREA))
-        );
+        return TARGET_PARTICLES;
     }
 
     function createParticle(x, y) {
@@ -233,7 +227,7 @@ function initTrianglesParticles() {
                     continue;
                 }
 
-                const targetAlpha = smoothFalloff(dist, LINK_DISTANCE) * 0.42;
+                const targetAlpha = smoothFalloff(dist, LINK_DISTANCE) * 0.62;
                 const edgeKey = i + '|' + j;
                 const prevAlpha = state.edgeAlpha.get(edgeKey) ?? 0;
                 const linkAlpha = lerp(prevAlpha, targetAlpha, 0.22);
@@ -243,7 +237,7 @@ function initTrianglesParticles() {
                 }
 
                 ctx.beginPath();
-                ctx.strokeStyle = 'rgba(145, 145, 145, ' + linkAlpha.toFixed(3) + ')';
+                ctx.strokeStyle = 'rgba(74, 74, 74, ' + linkAlpha.toFixed(3) + ')';
                 ctx.lineWidth = 1;
                 ctx.moveTo(a.x, a.y);
                 ctx.lineTo(b.x, b.y);
@@ -277,7 +271,7 @@ function initTrianglesParticles() {
                         continue;
                     }
 
-                    const targetTriAlpha = Math.min(edgeAB, edgeAC, edgeBC) * 0.45;
+                    const targetTriAlpha = Math.min(edgeAB, edgeAC, edgeBC) * 0.85;
                     const triangleKey = i + '|' + j + '|' + k;
                     const prevTriAlpha = state.triangleAlpha.get(triangleKey) ?? 0;
                     const triAlpha = lerp(prevTriAlpha, targetTriAlpha, 0.16);
@@ -287,7 +281,7 @@ function initTrianglesParticles() {
                     }
 
                     ctx.beginPath();
-                    ctx.fillStyle = 'rgba(195, 195, 195, ' + triAlpha.toFixed(3) + ')';
+                    ctx.fillStyle = 'rgba(112, 112, 112, ' + triAlpha.toFixed(3) + ')';
                     ctx.moveTo(a.x, a.y);
                     ctx.lineTo(b.x, b.y);
                     ctx.lineTo(c.x, c.y);
@@ -305,7 +299,7 @@ function initTrianglesParticles() {
                 continue;
             }
 
-            const faded = prev * 0.84;
+            const faded = prev * 0.88;
 
             if (faded < 0.0025) {
                 continue;
@@ -324,7 +318,7 @@ function initTrianglesParticles() {
             }
 
             ctx.beginPath();
-            ctx.fillStyle = 'rgba(195, 195, 195, ' + faded.toFixed(3) + ')';
+            ctx.fillStyle = 'rgba(112, 112, 112, ' + faded.toFixed(3) + ')';
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
             ctx.lineTo(c.x, c.y);
