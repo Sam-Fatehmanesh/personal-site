@@ -1,106 +1,303 @@
-// Initialize particles.js
-particlesJS('particles-js', {
-    particles: {
-        number: {
-            value: 80,
-            density: {
-                enable: true,
-                value_area: 800
-            }
-        },
-        color: {
-            value: '#000000'
-        },
-        shape: {
-            type: 'circle',
-            stroke: {
-                width: 0,
-                color: '#000000'
-            }
-        },
-        opacity: {
-            value: 0.5,
-            random: false,
-            anim: {
-                enable: false,
-                speed: 1,
-                opacity_min: 0.1,
-                sync: false
-            }
-        },
-        size: {
-            value: 3,
-            random: true,
-            anim: {
-                enable: false,
-                speed: 40,
-                size_min: 0.1,
-                sync: false
-            }
-        },
-        line_linked: {
-            enable: true,
-            distance: 150,
-            color: '#000000',
-            opacity: 0.4,
-            width: 1
-        },
-        move: {
-            enable: true,
-            speed: 6,
-            direction: 'none',
-            random: false,
-            straight: false,
-            out_mode: 'out',
-            bounce: false,
-            attract: {
-                enable: false,
-                rotateX: 600,
-                rotateY: 1200
-            }
+// Local triangles renderer (no CDN/runtime dependency)
+function initTrianglesParticles() {
+    const container = document.getElementById('particles-js');
+
+    if (!container) {
+        return;
+    }
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+        return;
+    }
+
+    // Force a visible full-viewport rendering layer even if CSS is stale/cached.
+    container.style.position = 'fixed';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100vw';
+    container.style.height = '100vh';
+    container.style.zIndex = '0';
+    container.style.pointerEvents = 'none';
+
+    canvas.style.position = 'absolute';
+    canvas.style.inset = '0';
+    canvas.style.display = 'block';
+
+    container.replaceChildren(canvas);
+
+    const LINK_DISTANCE = 180;
+    const REPULSE_DISTANCE = 280;
+    const BASE_SPEED = 0.6;
+    const TYPE_COUNT = 3;
+    const INTERACTION_RADIUS = 170;
+    const CORE_REPEL_RADIUS = 26;
+    const FORCE_SCALE = 0.014;
+    const MAX_FORCE = 0.07;
+    const DRAG = 0.9975;
+    const MIN_SPEED = 0.4;
+    const MAX_SPEED = 2.2;
+    const NOISE_STRENGTH = 0.004;
+    const FORCE_MATRIX = [
+        [0.08, -0.24, 0.18],
+        [0.18, 0.08, -0.24],
+        [-0.24, 0.18, 0.08]
+    ];
+    const MIN_PARTICLES = 40;
+    const MAX_PARTICLES = 130;
+    const DENSITY_AREA = 12500;
+
+    const state = {
+        width: 0,
+        height: 0,
+        particles: [],
+        mouseX: -9999,
+        mouseY: -9999
+    };
+
+    const randomBetween = (a, b) => Math.random() * (b - a) + a;
+
+    function particleCountForSize() {
+        const area = Math.max(1, state.width * state.height);
+        return Math.max(
+            MIN_PARTICLES,
+            Math.min(MAX_PARTICLES, Math.floor(area / DENSITY_AREA))
+        );
+    }
+
+    function createParticle(x, y) {
+        return {
+            x: x ?? randomBetween(0, state.width),
+            y: y ?? randomBetween(0, state.height),
+            vx: randomBetween(-BASE_SPEED, BASE_SPEED),
+            vy: randomBetween(-BASE_SPEED, BASE_SPEED),
+            size: randomBetween(1.6, 3.6),
+            alpha: randomBetween(0.5, 0.9),
+            type: Math.floor(randomBetween(0, TYPE_COUNT))
+        };
+    }
+
+    function syncParticleCount() {
+        const target = particleCountForSize();
+
+        while (state.particles.length < target) {
+            state.particles.push(createParticle());
         }
-    },
-    interactivity: {
-        detect_on: 'window',
-        events: {
-            onhover: {
-                enable: true,
-                mode: 'repulse'
-            },
-            onclick: {
-                enable: true,
-                mode: 'push'
-            },
-            resize: true
-        },
-        modes: {
-            grab: {
-                distance: 400,
-                line_linked: {
-                    opacity: 1
+
+        if (state.particles.length > target) {
+            state.particles.length = target;
+        }
+    }
+
+    function resizeCanvas() {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        state.width = Math.max(1, window.innerWidth);
+        state.height = Math.max(1, window.innerHeight);
+
+        canvas.width = Math.floor(state.width * dpr);
+        canvas.height = Math.floor(state.height * dpr);
+        canvas.style.width = state.width + 'px';
+        canvas.style.height = state.height + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        syncParticleCount();
+    }
+
+    function updateParticles() {
+        const interactionRadius2 = INTERACTION_RADIUS * INTERACTION_RADIUS;
+
+        // Particle-Life style pair interactions (O(n^2), fine for ~100 particles).
+        for (let i = 0; i < state.particles.length; i++) {
+            const a = state.particles[i];
+
+            for (let j = i + 1; j < state.particles.length; j++) {
+                const b = state.particles[j];
+                const dx = b.x - a.x;
+                const dy = b.y - a.y;
+                const d2 = dx * dx + dy * dy;
+
+                if (d2 <= 0 || d2 > interactionRadius2) {
+                    continue;
                 }
-            },
-            bubble: {
-                distance: 400,
-                size: 40,
-                duration: 2,
-                opacity: 8,
-                speed: 3
-            },
-            repulse: {
-                distance: 200,
-                duration: 0.4
-            },
-            push: {
-                particles_nb: 4
-            },
-            remove: {
-                particles_nb: 2
+
+                const d = Math.sqrt(d2);
+                const ux = dx / d;
+                const uy = dy / d;
+
+                const coeff = FORCE_MATRIX[a.type][b.type] ?? 0;
+                let force;
+
+                if (d < CORE_REPEL_RADIUS) {
+                    const t = 1 - d / CORE_REPEL_RADIUS;
+                    force = -1.6 * t;
+                } else {
+                    const t = d / INTERACTION_RADIUS;
+                    // Add weak long-range repulsion bias to prevent hard clumping.
+                    force = coeff * (1 - t) - 0.12 * t;
+                }
+
+                force *= FORCE_SCALE;
+                force = Math.max(-MAX_FORCE, Math.min(MAX_FORCE, force));
+
+                a.vx += ux * force;
+                a.vy += uy * force;
+                b.vx -= ux * force;
+                b.vy -= uy * force;
             }
         }
-    },
-    retina_detect: true
-});
+
+        const t = performance.now() * 0.001;
+
+        for (const p of state.particles) {
+            // Keeps the system energized so it doesn't cool into static clumps.
+            p.vx += Math.sin(t * 0.9 + p.y * 0.01 + p.type * 2.1) * NOISE_STRENGTH;
+            p.vy += Math.cos(t * 0.8 + p.x * 0.01 - p.type * 1.7) * NOISE_STRENGTH;
+
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (p.x <= 0 || p.x >= state.width) p.vx *= -1;
+            if (p.y <= 0 || p.y >= state.height) p.vy *= -1;
+
+            p.x = Math.max(0, Math.min(state.width, p.x));
+            p.y = Math.max(0, Math.min(state.height, p.y));
+
+            const dx = p.x - state.mouseX;
+            const dy = p.y - state.mouseY;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist > 0 && dist < REPULSE_DISTANCE) {
+                const force = ((REPULSE_DISTANCE - dist) / REPULSE_DISTANCE) * 0.09;
+                p.vx += (dx / dist) * force;
+                p.vy += (dy / dist) * force;
+            }
+
+            p.vx *= DRAG;
+            p.vy *= DRAG;
+
+            const speed = Math.hypot(p.vx, p.vy);
+
+            if (speed > MAX_SPEED) {
+                const k = MAX_SPEED / speed;
+                p.vx *= k;
+                p.vy *= k;
+            } else if (speed < MIN_SPEED) {
+                if (speed > 0.0001) {
+                    const k = MIN_SPEED / speed;
+                    p.vx *= k;
+                    p.vy *= k;
+                } else {
+                    const angle = randomBetween(0, Math.PI * 2);
+                    p.vx = Math.cos(angle) * MIN_SPEED;
+                    p.vy = Math.sin(angle) * MIN_SPEED;
+                }
+            }
+        }
+    }
+
+    function drawParticles() {
+        for (const p of state.particles) {
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(0, 0, 0, ' + p.alpha.toFixed(3) + ')';
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function drawLinksAndTriangles() {
+        const neighborsByIndex = Array.from({ length: state.particles.length }, () => []);
+
+        for (let i = 0; i < state.particles.length; i++) {
+            const a = state.particles[i];
+
+            for (let j = i + 1; j < state.particles.length; j++) {
+                const b = state.particles[j];
+                const dx = b.x - a.x;
+                const dy = b.y - a.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist >= LINK_DISTANCE) {
+                    continue;
+                }
+
+                const linkAlpha = (1 - dist / LINK_DISTANCE) * 0.65;
+
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(95, 95, 95, ' + linkAlpha.toFixed(3) + ')';
+                ctx.lineWidth = 1;
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+
+                neighborsByIndex[i].push(j);
+            }
+        }
+
+        for (let i = 0; i < state.particles.length; i++) {
+            const a = state.particles[i];
+            const neighbors = neighborsByIndex[i];
+
+            for (let m = 0; m < neighbors.length; m++) {
+                for (let n = m + 1; n < neighbors.length; n++) {
+                    const j = neighbors[m];
+                    const k = neighbors[n];
+                    const b = state.particles[j];
+                    const c = state.particles[k];
+
+                    const dx = c.x - b.x;
+                    const dy = c.y - b.y;
+                    const bcDist = Math.hypot(dx, dy);
+
+                    if (bcDist >= LINK_DISTANCE) {
+                        continue;
+                    }
+
+                    const triAlpha = (1 - bcDist / LINK_DISTANCE) * 0.12;
+                    ctx.beginPath();
+                    ctx.fillStyle = 'rgba(130, 130, 130, ' + triAlpha.toFixed(3) + ')';
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.lineTo(c.x, c.y);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+        }
+    }
+
+    function animate() {
+        updateParticles();
+        ctx.clearRect(0, 0, state.width, state.height);
+        drawLinksAndTriangles();
+        drawParticles();
+        requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('mousemove', (event) => {
+        state.mouseX = event.clientX;
+        state.mouseY = event.clientY;
+    });
+
+    window.addEventListener('mouseout', (event) => {
+        if (!event.relatedTarget) {
+            state.mouseX = -9999;
+            state.mouseY = -9999;
+        }
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+
+    resizeCanvas();
+    animate();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTrianglesParticles);
+} else {
+    initTrianglesParticles();
+}
 
 // Navigation functionality - Click control + Manual scroll detection
 document.addEventListener('DOMContentLoaded', function() {
