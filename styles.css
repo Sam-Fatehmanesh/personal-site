@@ -8,12 +8,63 @@ html {
     scroll-behavior: smooth;
 }
 
+:root {
+    --bg-color: #ffffff;
+    --text-color: #050505;
+    --border-color: #111111;
+    --muted-color: #666666;
+    --muted-soft-color: #888888;
+    --card-shadow-color: rgba(0, 0, 0, 0.1);
+    --video-card-bg: #000000;
+    --video-text-color: #ffffff;
+    --demo-button-bg: #ffffff;
+    --demo-button-text: #000000;
+    --demo-button-border: #000000;
+    --demo-button-hover-bg: #000000;
+    --demo-button-hover-text: #ffffff;
+    --theme-button-bg: rgba(255, 255, 255, 0.82);
+    --theme-button-border: rgba(0, 0, 0, 0.78);
+    --theme-button-text: #000000;
+    --theme-button-hover-bg: #000000;
+    --theme-button-hover-border: #000000;
+    --theme-button-hover-text: #ffffff;
+    --particle-dot-rgb: 0, 0, 0;
+    --particle-line-rgb: 74, 74, 74;
+    --particle-triangle-rgb: 112, 112, 112;
+}
+
+body.theme-dark {
+    --bg-color: #0d0d0d;
+    --text-color: #f3f3f3;
+    --border-color: #f1f1f1;
+    --muted-color: #c2c2c2;
+    --muted-soft-color: #a8a8a8;
+    --card-shadow-color: rgba(255, 255, 255, 0.16);
+    --video-card-bg: #f4f4f4;
+    --video-text-color: #ffffff;
+    --demo-button-bg: #0d0d0d;
+    --demo-button-text: #f3f3f3;
+    --demo-button-border: #f3f3f3;
+    --demo-button-hover-bg: #f3f3f3;
+    --demo-button-hover-text: #0d0d0d;
+    --theme-button-bg: rgba(13, 13, 13, 0.84);
+    --theme-button-border: rgba(243, 243, 243, 0.82);
+    --theme-button-text: #f3f3f3;
+    --theme-button-hover-bg: #f3f3f3;
+    --theme-button-hover-border: #f3f3f3;
+    --theme-button-hover-text: #0d0d0d;
+    --particle-dot-rgb: 243, 243, 243;
+    --particle-line-rgb: 190, 190, 190;
+    --particle-triangle-rgb: 155, 155, 155;
+}
+
 body {
     font-family: 'Oxanium', sans-serif;
-    background-color: white;
-    color: black;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     overflow-x: hidden;
     line-height: 1.6;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Particles.js background */
@@ -60,7 +111,7 @@ body {
 }
 
 .nav-link {
-    color: black;
+    color: var(--text-color);
     text-decoration: none;
     font-size: 1rem;
     font-weight: 400;
@@ -85,13 +136,13 @@ body {
 
 /* .demo-button {
     background: white;
-    color: black;
+    color: var(--text-color);
     text-decoration: none;
     font-size: 1rem;
     font-weight: 700;
     padding: 0.6rem 1rem;
     border-radius: 999px;
-    border: 2px solid black;
+    border: 2px solid var(--border-color);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -100,7 +151,7 @@ body {
 }
 
 .demo-button:hover {
-    background: black;
+    background: var(--video-card-bg);
     color: white;
     transform: translateY(-2px);
 } */
@@ -136,9 +187,10 @@ main {
     left: 2rem;
     font-size: 2rem;
     font-weight: 700;
-    color: black;
+    color: var(--text-color);
     z-index: 1001;
 }
+
 
 /* Landing section */
 #landing {
@@ -165,7 +217,7 @@ main {
 }
 
 .link {
-    color: black;
+    color: var(--text-color);
     text-decoration: underline;
     font-weight: 500;
 }
@@ -181,7 +233,7 @@ main {
 }
 
 .social-link {
-    color: black;
+    color: var(--text-color);
     transition: all 0.3s ease;
     opacity: 0.8;
 }
@@ -217,7 +269,7 @@ main {
 
 .project-card {
     background: transparent;
-    border: 2px solid black;
+    border: 2px solid var(--border-color);
     border-radius: 12px;
     padding: 2rem;
     transition: all 0.3s ease;
@@ -229,11 +281,11 @@ main {
 
 .project-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 25px var(--card-shadow-color);
 }
 
 .video-card {
-    background: black;
+    background: var(--video-card-bg);
     border: none;
 }
 
@@ -269,34 +321,34 @@ main {
     font-size: 1.3rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    color: black;
+    color: var(--text-color);
 }
 
 .project-content p {
     font-size: 1.1rem;
     line-height: 1.6;
     margin-bottom: 1rem;
-    color: black;
+    color: var(--text-color);
     flex: 1;
 }
 
 .video-card .project-content h3 {
-    color: white;
+    color: var(--video-text-color);
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .video-card .project-content p {
-    color: white;
+    color: var(--video-text-color);
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .video-card .project-link {
-    color: white;
+    color: var(--video-text-color);
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .project-link {
-    color: black;
+    color: var(--text-color);
     text-decoration: underline;
     font-weight: 500;
     transition: all 0.3s ease;
@@ -315,9 +367,9 @@ main {
 
 /* Override all other styles for demo button */
 .project-card.video-card .project-content .project-links .demo-button {
-    background: white !important;
-    color: black !important;
-    border: 2px solid black !important;
+    background: var(--demo-button-bg) !important;
+    color: var(--demo-button-text) !important;
+    border: 2px solid var(--demo-button-border) !important;
     text-shadow: none !important;
     cursor: pointer !important;
     text-decoration: none !important;
@@ -333,8 +385,8 @@ main {
 }
 
 .project-card.video-card .project-content .project-links .demo-button:hover {
-    background: black !important;
-    color: white !important;
+    background: var(--demo-button-hover-bg) !important;
+    color: var(--demo-button-hover-text) !important;
     text-shadow: none !important;
     transform: translateY(-2px) !important;
 }
@@ -363,7 +415,7 @@ main {
 
 .publication-item {
     background: transparent;
-    border: 2px solid black;
+    border: 2px solid var(--border-color);
     border-radius: 12px;
     padding: 2rem;
     transition: all 0.3s ease;
@@ -371,33 +423,33 @@ main {
 
 .publication-item:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 25px var(--card-shadow-color);
 }
 
 .publication-item h3 {
     font-size: 1.4rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
-    color: black;
+    color: var(--text-color);
     line-height: 1.4;
 }
 
 .publication-item .authors {
     font-size: 1rem;
-    color: #666;
+    color: var(--muted-color);
     margin-bottom: 0.5rem;
     font-weight: 400;
 }
 
 .publication-item .venue {
     font-size: 0.95rem;
-    color: #888;
+    color: var(--muted-soft-color);
     margin-bottom: 1.25rem;
     font-style: italic;
 }
 
 .publication-link {
-    color: black;
+    color: var(--text-color);
     text-decoration: underline;
     font-weight: 500;
     font-size: 1rem;
@@ -432,7 +484,7 @@ main {
     display: inline-flex;
     align-items: center;
     gap: 0.75rem;
-    color: black;
+    color: var(--text-color);
     text-decoration: none;
     font-size: 1.2rem;
     font-weight: 500;
@@ -473,7 +525,7 @@ main {
         left: 1rem;
         font-size: 1.5rem;
     }
-    
+
     #landing {
         padding-left: 2rem;
         text-align: left;
@@ -521,7 +573,7 @@ main {
     /* Mobile video card specific styling */
     .video-card {
         min-height: 350px;
-        background: black;
+        background: var(--video-card-bg);
         border: none;
         display: flex;
         flex-direction: column;
@@ -556,7 +608,7 @@ main {
     .video-card .project-content h3 {
         font-size: 1.1rem;
         margin-bottom: 0.7rem;
-        color: white;
+        color: var(--video-text-color);
         text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
         font-weight: 600;
     }
@@ -565,14 +617,14 @@ main {
         font-size: 0.85rem;
         line-height: 1.4;
         margin-bottom: 1rem;
-        color: white;
+        color: var(--video-text-color);
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
         overflow: visible;
         word-wrap: break-word;
     }
     
     .video-card .project-link {
-        color: white;
+        color: var(--video-text-color);
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
         font-size: 0.85rem;
         margin-top: auto;
@@ -585,7 +637,7 @@ main {
     /* Mobile regular card styling */
     .project-card:not(.video-card) {
         background: transparent;
-        border: 2px solid black;
+        border: 2px solid var(--border-color);
         padding: 1.5rem;
         min-height: auto;
         display: flex;
@@ -606,7 +658,7 @@ main {
     .project-card:not(.video-card) .project-content h3 {
         font-size: 1.1rem;
         margin-bottom: 0.7rem;
-        color: black;
+        color: var(--text-color);
         font-weight: 600;
         word-wrap: break-word;
     }
@@ -615,7 +667,7 @@ main {
         font-size: 0.85rem;
         line-height: 1.4;
         margin-bottom: 1rem;
-        color: black;
+        color: var(--text-color);
         flex: 1;
         overflow: visible;
         word-wrap: break-word;
@@ -623,7 +675,7 @@ main {
     
     .project-card:not(.video-card) .project-link {
         font-size: 0.85rem;
-        color: black;
+        color: var(--text-color);
         margin-top: auto;
     }
     

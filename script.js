@@ -1,3 +1,14 @@
+function initializeTheme() {
+    document.body.classList.remove('theme-dark');
+    document.dispatchEvent(new CustomEvent('themechange', { detail: { theme: 'light' } }));
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeTheme);
+} else {
+    initializeTheme();
+}
+
 // Local triangles renderer (no CDN/runtime dependency)
 function initTrianglesParticles() {
     const container = document.getElementById('particles-js');
@@ -46,6 +57,10 @@ function initTrianglesParticles() {
         [-0.24, 0.18, 0.08]
     ];
     const TARGET_PARTICLES = 80;
+    const BASE_DENSITY_AREA = 1920 * 1080;
+    const PARTICLE_DENSITY = TARGET_PARTICLES / BASE_DENSITY_AREA;
+    const MIN_PARTICLES = 32;
+    const MAX_PARTICLES = 360;
 
     const state = {
         width: 0,
@@ -59,6 +74,22 @@ function initTrianglesParticles() {
 
     const randomBetween = (a, b) => Math.random() * (b - a) + a;
     const lerp = (a, b, t) => a + (b - a) * t;
+    const themeColors = {
+        dot: '0, 0, 0',
+        link: '74, 74, 74',
+        triangle: '112, 112, 112'
+    };
+
+    function getThemeRgbVar(name, fallback) {
+        const value = getComputedStyle(document.body).getPropertyValue(name).trim();
+        return value || fallback;
+    }
+
+    function refreshThemeColors() {
+        themeColors.dot = getThemeRgbVar('--particle-dot-rgb', '0, 0, 0');
+        themeColors.link = getThemeRgbVar('--particle-line-rgb', '74, 74, 74');
+        themeColors.triangle = getThemeRgbVar('--particle-triangle-rgb', '112, 112, 112');
+    }
 
     function smoothFalloff(distance, radius) {
         const x = Math.max(0, Math.min(1, 1 - distance / radius));
@@ -66,7 +97,9 @@ function initTrianglesParticles() {
     }
 
     function particleCountForSize() {
-        return TARGET_PARTICLES;
+        const area = Math.max(1, state.width * state.height);
+        const scaledCount = Math.round(area * PARTICLE_DENSITY);
+        return Math.max(MIN_PARTICLES, Math.min(MAX_PARTICLES, scaledCount));
     }
 
     function createParticle(x, y) {
@@ -202,7 +235,7 @@ function initTrianglesParticles() {
     function drawParticles() {
         for (const p of state.particles) {
             ctx.beginPath();
-            ctx.fillStyle = 'rgba(0, 0, 0, ' + p.alpha.toFixed(3) + ')';
+            ctx.fillStyle = 'rgba(' + themeColors.dot + ', ' + p.alpha.toFixed(3) + ')';
             ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
             ctx.fill();
         }
@@ -237,7 +270,7 @@ function initTrianglesParticles() {
                 }
 
                 ctx.beginPath();
-                ctx.strokeStyle = 'rgba(74, 74, 74, ' + linkAlpha.toFixed(3) + ')';
+                ctx.strokeStyle = 'rgba(' + themeColors.link + ', ' + linkAlpha.toFixed(3) + ')';
                 ctx.lineWidth = 1;
                 ctx.moveTo(a.x, a.y);
                 ctx.lineTo(b.x, b.y);
@@ -281,7 +314,7 @@ function initTrianglesParticles() {
                     }
 
                     ctx.beginPath();
-                    ctx.fillStyle = 'rgba(112, 112, 112, ' + triAlpha.toFixed(3) + ')';
+                    ctx.fillStyle = 'rgba(' + themeColors.triangle + ', ' + triAlpha.toFixed(3) + ')';
                     ctx.moveTo(a.x, a.y);
                     ctx.lineTo(b.x, b.y);
                     ctx.lineTo(c.x, c.y);
@@ -318,7 +351,7 @@ function initTrianglesParticles() {
             }
 
             ctx.beginPath();
-            ctx.fillStyle = 'rgba(112, 112, 112, ' + faded.toFixed(3) + ')';
+            ctx.fillStyle = 'rgba(' + themeColors.triangle + ', ' + faded.toFixed(3) + ')';
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
             ctx.lineTo(c.x, c.y);
@@ -353,7 +386,9 @@ function initTrianglesParticles() {
     });
 
     window.addEventListener('resize', resizeCanvas);
+    document.addEventListener('themechange', refreshThemeColors);
 
+    refreshThemeColors();
     resizeCanvas();
     animate();
 }
@@ -370,6 +405,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const sections = document.querySelectorAll('.section');
     let isClickScrolling = false;
     let scrollEndTimer;
+    const isChromeBrowser = (() => {
+        const ua = navigator.userAgent;
+        const isGoogleChrome = /Chrome\/\d+/.test(ua) && navigator.vendor === 'Google Inc.';
+        const isOtherChromiumBrand = /Edg\/|OPR\/|Brave\/|SamsungBrowser\//.test(ua);
+        return isGoogleChrome && !isOtherChromiumBrand;
+    })();
     
     // Function to update active nav link
     const updateActiveLink = (activeId) => {
@@ -378,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    // Custom smooth scroll function that can't be interrupted
+    // Use native smooth scrolling in Chrome, custom animation elsewhere.
     const smoothScrollTo = (targetElement, targetId) => {
         // Dynamic offset based on section
         let offset = 80; // Default navbar offset
@@ -391,6 +432,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - offset;
+        if (isChromeBrowser) {
+            window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
+            });
+            return 1400;
+        }
+
         const startPosition = window.pageYOffset;
         const distance = targetPosition - startPosition;
         const duration = 800; // 800ms duration
@@ -413,6 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         requestAnimationFrame(animation);
+        return 1000;
     };
 
     // Click-based navigation handler
@@ -425,14 +475,21 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update active class immediately
             updateActiveLink(targetId);
             
-            // Use custom smooth scroll
-            smoothScrollTo(targetElement, targetId);
+            // Scroll with browser-specific behavior.
+            const unlockDelayMs = smoothScrollTo(targetElement, targetId);
             
             // Reset flag after scroll completes
             clearTimeout(scrollEndTimer);
+            if (isChromeBrowser && 'onscrollend' in window) {
+                const onScrollEnd = () => {
+                    clearTimeout(scrollEndTimer);
+                    isClickScrolling = false;
+                };
+                window.addEventListener('scrollend', onScrollEnd, { once: true });
+            }
             scrollEndTimer = setTimeout(() => {
                 isClickScrolling = false;
-            }, 1000); // Adjusted to match custom scroll duration
+            }, unlockDelayMs);
         }
     };
 
