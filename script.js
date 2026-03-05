@@ -1,6 +1,61 @@
+const THEME_STORAGE_KEY = 'sfv-theme';
+const MOON_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"></path></svg>';
+const SUN_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>';
+
+function getStoredTheme() {
+    try {
+        const value = localStorage.getItem(THEME_STORAGE_KEY);
+        return value === 'dark' || value === 'light' ? value : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+function saveTheme(theme) {
+    try {
+        localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch (error) {
+        // Ignore storage failures in private/restricted browsing contexts.
+    }
+}
+
+function updateThemeToggleButton(theme) {
+    const toggle = document.getElementById('theme-toggle');
+
+    if (!toggle) {
+        return;
+    }
+
+    const isDark = theme === 'dark';
+    const nextMode = isDark ? 'light' : 'dark';
+    toggle.setAttribute('aria-pressed', String(isDark));
+    toggle.setAttribute('aria-label', 'Switch to ' + nextMode + ' mode');
+    toggle.setAttribute('title', 'Switch to ' + nextMode + ' mode');
+    toggle.innerHTML = isDark ? SUN_ICON : MOON_ICON;
+}
+
+function applyTheme(theme) {
+    const resolvedTheme = theme === 'dark' ? 'dark' : 'light';
+    document.body.classList.toggle('theme-dark', resolvedTheme === 'dark');
+    updateThemeToggleButton(resolvedTheme);
+    document.dispatchEvent(new CustomEvent('themechange', { detail: { theme: resolvedTheme } }));
+}
+
 function initializeTheme() {
-    document.body.classList.remove('theme-dark');
-    document.dispatchEvent(new CustomEvent('themechange', { detail: { theme: 'light' } }));
+    const initialTheme = getStoredTheme() ?? 'light';
+    applyTheme(initialTheme);
+
+    const toggle = document.getElementById('theme-toggle');
+
+    if (!toggle) {
+        return;
+    }
+
+    toggle.addEventListener('click', () => {
+        const nextTheme = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
+        applyTheme(nextTheme);
+        saveTheme(nextTheme);
+    });
 }
 
 if (document.readyState === 'loading') {

@@ -134,6 +134,46 @@ body {
     opacity: 1;
 }
 
+.theme-toggle-item {
+    min-height: 40px;
+}
+
+.theme-toggle {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.45rem;
+    border: 1.5px solid var(--theme-button-border);
+    background: var(--theme-button-bg);
+    color: var(--theme-button-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--theme-button-hover-bg);
+    border-color: var(--theme-button-hover-border);
+    color: var(--theme-button-hover-text);
+    transform: translateY(-1px);
+}
+
+.theme-toggle:focus-visible {
+    outline: 2px solid var(--text-color);
+    outline-offset: 2px;
+}
+
+.theme-toggle svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 /* .demo-button {
     background: white;
     color: var(--text-color);
@@ -518,6 +558,11 @@ main {
     
     .nav-link.active {
         font-size: 1.1rem;
+    }
+
+    .theme-toggle {
+        width: 1.8rem;
+        height: 1.8rem;
     }
     
     .logo {
