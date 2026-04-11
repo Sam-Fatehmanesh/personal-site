@@ -2,6 +2,50 @@ const THEME_STORAGE_KEY = 'sfv-theme';
 const MOON_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"></path></svg>';
 const SUN_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>';
 
+function syncThoughtBackdropLayers(sourceCanvas) {
+    if (!sourceCanvas) {
+        return;
+    }
+
+    const sourceWidth = Math.max(1, window.innerWidth);
+    const sourceHeight = Math.max(1, window.innerHeight);
+    const sourceScaleX = sourceCanvas.width / sourceWidth;
+    const sourceScaleY = sourceCanvas.height / sourceHeight;
+    const panelCanvases = document.querySelectorAll('.thought-card.is-open .thought-backdrop-canvas');
+
+    panelCanvases.forEach(panelCanvas => {
+        const panel = panelCanvas.closest('.thought-body-inner');
+
+        if (!panel) {
+            return;
+        }
+
+        const ctx = panelCanvas.getContext('2d');
+
+        if (!ctx) {
+            return;
+        }
+
+        const rect = panel.getBoundingClientRect();
+        const width = Math.max(1, Math.round(rect.width));
+        const height = Math.max(1, Math.round(rect.height));
+
+        if (panelCanvas.width !== width || panelCanvas.height !== height) {
+            panelCanvas.width = width;
+            panelCanvas.height = height;
+        } else {
+            ctx.clearRect(0, 0, width, height);
+        }
+
+        const sx = Math.max(0, Math.min(sourceCanvas.width - 1, rect.left * sourceScaleX));
+        const sy = Math.max(0, Math.min(sourceCanvas.height - 1, rect.top * sourceScaleY));
+        const sw = Math.max(1, Math.min(sourceCanvas.width - sx, rect.width * sourceScaleX));
+        const sh = Math.max(1, Math.min(sourceCanvas.height - sy, rect.height * sourceScaleY));
+
+        ctx.drawImage(sourceCanvas, sx, sy, sw, sh, 0, 0, width, height);
+    });
+}
+
 function getStoredTheme() {
     try {
         const value = localStorage.getItem(THEME_STORAGE_KEY);
@@ -93,6 +137,7 @@ function initTrianglesParticles() {
     canvas.style.display = 'block';
 
     container.replaceChildren(canvas);
+    window.__sfvParticlesCanvas = canvas;
 
     const LINK_DISTANCE = 205;
     const REPULSE_DISTANCE = 280;
@@ -425,6 +470,7 @@ function initTrianglesParticles() {
         ctx.clearRect(0, 0, state.width, state.height);
         drawLinksAndTriangles();
         drawParticles();
+        syncThoughtBackdropLayers(canvas);
         requestAnimationFrame(animate);
     }
 
@@ -482,6 +528,8 @@ document.addEventListener('DOMContentLoaded', function() {
             offset = 20; // Less offset for projects to show title properly
         } else if (targetId === 'publications') {
             offset = 20; // Less offset for publications to show title properly
+        } else if (targetId === 'thoughts') {
+            offset = 20; // Less offset for thoughts to show title properly
         } else if (targetId === 'contact') {
             offset = 20; // More offset for contact to center content better
         }
@@ -585,4 +633,28 @@ document.addEventListener('DOMContentLoaded', function() {
             handleNavClick(targetId);
         });
     });
-}); 
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const thoughtToggles = document.querySelectorAll('.thought-toggle');
+
+    thoughtToggles.forEach(button => {
+        const panelId = button.getAttribute('aria-controls');
+        const panel = panelId ? document.getElementById(panelId) : null;
+        const card = button.closest('.thought-card');
+
+        if (!panel || !card) {
+            return;
+        }
+
+        button.addEventListener('click', () => {
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+            const nextExpanded = !isExpanded;
+
+            button.setAttribute('aria-expanded', String(nextExpanded));
+            button.textContent = nextExpanded ? 'Collapse' : 'Expand';
+            panel.setAttribute('aria-hidden', String(!nextExpanded));
+            card.classList.toggle('is-open', nextExpanded);
+        });
+    });
+});
